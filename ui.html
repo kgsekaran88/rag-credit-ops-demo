@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Meridian Credit Ops demo — LLM → Unmanaged → Managed</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --ink: #111827;
+    --soft: #374151;
+    --mute: #6b7280;
+    --line: #e5e7eb;
+    --sheet: #ffffff;
+    --elevated: #f9fafb;
+    --canvas: #f3f4f6;
+    --navy: #0b2545;
+    --a: #be123c;
+    --a-bg: #fff1f2;
+    --m: #b45309;
+    --m-bg: #fffbeb;
+    --b: #047857;
+    --b-bg: #ecfdf5;
+    --primary: #1d4ed8;
+    --primary-soft: #dbeafe;
+    --radius: 12px;
+    --font: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--ink);
+    background: var(--canvas);
+    -webkit-font-smoothing: antialiased;
+  }
+  .page {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 28px 20px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  header {
+    background: var(--navy);
+    color: #fff;
+    border-radius: var(--radius);
+    padding: 22px 24px;
+  }
+  header .eyebrow {
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #93c5fd;
+    margin-bottom: 8px;
+  }
+  header h1 {
+    margin: 0;
+    font-size: 1.6rem;
+    letter-spacing: -0.02em;
+  }
+  header p {
+    margin: 8px 0 0;
+    color: #cbd5e1;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+  .qbar {
+    background: var(--sheet);
+    border: 2px solid var(--primary);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .qbar .lbl {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 6px;
+  }
+  .qbar .q {
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 12px;
+  }
+  .qbar .row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+  .qbar input {
+    flex: 1;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font: inherit;
+    font-size: 14px;
+  }
+  .btn {
+    border: 0;
+    border-radius: 8px;
+    padding: 10px 14px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-primary { background: var(--primary); color: #fff; }
+  .btn-soft { background: var(--elevated); color: var(--ink); border: 1px solid var(--line); }
+  .btn-a { background: var(--a); color: #fff; }
+  .btn-m { background: var(--m); color: #fff; }
+  .btn-b { background: var(--b); color: #fff; }
+  .actions-top {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .section {
+    background: var(--sheet);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .section.llm { border-top: 5px solid var(--a); }
+  .section.unmanaged { border-top: 5px solid var(--m); }
+  .section.managed { border-top: 5px solid var(--b); }
+  .sec-hd {
+    padding: 16px 18px;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: flex-start;
+    background: var(--elevated);
+    border-bottom: 1px solid var(--line);
+  }
+  .sec-hd .step {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .section.llm .step { color: var(--a); }
+  .section.unmanaged .step { color: var(--m); }
+  .section.managed .step { color: var(--b); }
+  .sec-hd h2 {
+    margin: 4px 0 0;
+    font-size: 1.2rem;
+  }
+  .sec-hd .sub {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--mute);
+  }
+  .sec-hd .count {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--mute);
+    background: #fff;
+    border: 1px solid var(--line);
+    padding: 6px 10px;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+  .sec-bd { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    align-items: center;
+  }
+  .hint {
+    font-size: 13px;
+    color: var(--mute);
+    line-height: 1.45;
+  }
+  .docs {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .doc {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--elevated);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    font-size: 13px;
+  }
+  .tag {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 2px 8px;
+    border-radius: 999px;
+  }
+  .tag.active { background: var(--b-bg); color: var(--b); }
+  .tag.superseded { background: #f3f4f6; color: var(--mute); }
+  .tag.unknown { background: var(--a-bg); color: var(--a); }
+  .empty {
+    font-size: 13px;
+    color: var(--mute);
+    padding: 8px 0;
+  }
+  .err { font-size: 12px; color: var(--a); }
+
+  .answer {
+    border: 2px solid var(--line);
+    border-radius: 10px;
+    padding: 14px;
+    background: #fff;
+    min-height: 140px;
+  }
+  .section.llm .answer.live { border-color: var(--a); background: var(--a-bg); }
+  .section.unmanaged .answer.live { border-color: var(--m); background: var(--m-bg); }
+  .section.managed .answer.live { border-color: var(--b); background: var(--b-bg); }
+  .answer .albl {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--mute);
+    margin-bottom: 8px;
+  }
+  .verdict {
+    display: inline-block;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
+  }
+  .verdict.fail { background: #ffe4e6; color: var(--a); }
+  .verdict.risk { background: #fef3c7; color: var(--m); }
+  .verdict.pass { background: #d1fae5; color: var(--b); }
+  .abody {
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.5;
+    margin-bottom: 10px;
+  }
+  .warn {
+    font-size: 13px;
+    color: var(--a);
+    background: #fff;
+    border: 1px solid #fecdd3;
+    border-radius: 8px;
+    padding: 8px 10px;
+    margin-bottom: 10px;
+  }
+  .evidence, .cite {
+    background: #fff;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-top: 8px;
+    font-size: 13px;
+  }
+  .evidence .elbl, .cite .clbl {
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: var(--mute);
+    margin-bottom: 6px;
+  }
+  .crow {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 2px 0;
+  }
+  .crow b { color: var(--mute); font-weight: 600; min-width: 4rem; }
+  .improve {
+    background: var(--sheet);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+  }
+  .improve h3 {
+    margin: 0 0 10px;
+    font-size: 14px;
+  }
+  .improve ol {
+    margin: 0;
+    padding-left: 1.2rem;
+    color: var(--soft);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  .improve li { margin-bottom: 6px; }
+  .improve li strong { color: var(--ink); }
+  .lesson {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--soft);
+    background: var(--primary-soft);
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .lesson b { color: var(--ink); }
+</style>
+</head>
+<body>
+  <div class="page">
+    <header>
+      <div class="eyebrow">Meridian Bank · Credit Ops demo</div>
+      <h1>Same question · three independent steps</h1>
+      <p>1) Ask LLM-only · 2) Load unmanaged files & ask · 3) Load managed files & ask · Watch the answer improve.</p>
+    </header>
+
+    <div class="qbar">
+      <div class="lbl">Question used in every section</div>
+      <div class="q" id="qVisible">Can a customer get EMI relief after job loss without visiting the branch?</div>
+      <div class="row">
+        <input id="q" value="Can a customer get EMI relief after job loss without visiting the branch?"/>
+        <button class="btn btn-soft" id="resetAll" type="button">Reset all</button>
+      </div>
+    </div>
+
+    <!-- SECTION 1 -->
+    <section class="section llm" id="sec-llm">
+      <div class="sec-hd">
+        <div>
+          <div class="step">Step 1 · LLM-only</div>
+          <h2>No vault</h2>
+          <p class="sub">Ask with zero documents. Expect fluent but ungrounded.</p>
+        </div>
+        <div class="count">0 docs</div>
+      </div>
+      <div class="sec-bd">
+        <p class="hint">No files to load. This pane never searches Credit Ops circulars.</p>
+        <div class="controls">
+          <button class="btn btn-a" id="askLlm" type="button">Ask LLM-only</button>
+        </div>
+        <div class="answer" id="ans-llm">
+          <div class="albl">Answer appears here</div>
+          <div class="empty">Not asked yet</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 2 -->
+    <section class="section unmanaged" id="sec-unmanaged">
+      <div class="sec-hd">
+        <div>
+          <div class="step">Step 2 · Unmanaged RAG</div>
+          <h2>Soup index</h2>
+          <p class="sub">Load plain circulars, then ask. No status filter.</p>
+        </div>
+        <div class="count" id="count-unmanaged">0 docs</div>
+      </div>
+      <div class="sec-bd">
+        <p class="hint">Loads <code>credit_ops_v2024.txt</code> + <code>credit_ops_v2025.txt</code> (both eligible — status unknown).</p>
+        <div class="controls">
+          <button class="btn btn-m" id="loadUnmanaged" type="button">Load unmanaged files</button>
+          <button class="btn btn-primary" id="askUnmanaged" type="button">Ask unmanaged</button>
+        </div>
+        <div class="err" id="err-unmanaged"></div>
+        <div class="docs" id="docs-unmanaged"><div class="empty">No files loaded</div></div>
+        <div class="answer" id="ans-unmanaged">
+          <div class="albl">Answer appears here</div>
+          <div class="empty">Load files, then ask</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SECTION 3 -->
+    <section class="section managed" id="sec-managed">
+      <div class="sec-hd">
+        <div>
+          <div class="step">Step 3 · Managed RAG</div>
+          <h2>Governed vault</h2>
+          <p class="sub">Load metadata files, then ask. Filter status=active · cite.</p>
+        </div>
+        <div class="count" id="count-managed">0 docs</div>
+      </div>
+      <div class="sec-bd">
+        <p class="hint">Loads managed files: 2024 = <strong>superseded</strong>, 2025 = <strong>active</strong>.</p>
+        <div class="controls">
+          <button class="btn btn-b" id="loadManaged" type="button">Load managed files</button>
+          <button class="btn btn-primary" id="askManaged" type="button">Ask managed</button>
+        </div>
+        <div class="err" id="err-managed"></div>
+        <div class="docs" id="docs-managed"><div class="empty">No files loaded</div></div>
+        <div class="answer" id="ans-managed">
+          <div class="albl">Answer appears here</div>
+          <div class="empty">Load files, then ask</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="improve">
+      <h3>How the answer improves</h3>
+      <ol id="improveOl">
+        <li id="imp-llm"><strong>LLM-only:</strong> <span>Not asked yet</span></li>
+        <li id="imp-unmanaged"><strong>Unmanaged:</strong> <span>Not asked yet</span></li>
+        <li id="imp-managed"><strong>Managed:</strong> <span>Not asked yet</span></li>
+      </ol>
+    </div>
+    <div class="lesson" id="lesson" hidden></div>
+  </div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const GOLDEN = 'Can a customer get EMI relief after job loss without visiting the branch?';
+
+async function api(path, opts = {}) {
+  const res = await fetch(path, opts);
+  return res.json();
+}
+function esc(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+function tag(status) {
+  const s = (status || 'unknown').toLowerCase();
+  const cls = s === 'active' ? 'active' : s === 'superseded' ? 'superseded' : 'unknown';
+  return `<span class="tag ${cls}">${esc(s)}</span>`;
+}
+function q() { return ($('q').value.trim() || GOLDEN); }
+
+function renderDocs(side, data) {
+  const el = $('docs-' + side);
+  $('err-' + side).textContent = data.last_error || '';
+  $('count-' + side).textContent = `${data.count} doc${data.count === 1 ? '' : 's'}`;
+  if (!data.docs.length) {
+    el.innerHTML = '<div class="empty">No files loaded</div>';
+    return;
+  }
+  el.innerHTML = data.docs.map(d => {
+    const title = side === 'managed' ? (d.doc_id || d.filename) : d.filename;
+    return `<div class="doc"><div>${esc(title)}</div>${tag(d.status)}</div>`;
+  }).join('');
+}
+
+function renderAnswer(side, result) {
+  const el = $('ans-' + side);
+  el.classList.add('live');
+
+  let verdictClass = 'risk', verdictText = 'Retrieved';
+  if (side === 'llm' || result.mode === 'llm_only') {
+    verdictClass = 'fail'; verdictText = 'Ungrounded';
+  } else if (side === 'managed') {
+    verdictClass = ((result.cite || {}).status || '').toLowerCase() === 'active' ? 'pass' : 'risk';
+    verdictText = verdictClass === 'pass' ? 'Current · active' : 'Managed';
+  } else {
+    const id = String((result.cite || {}).doc_id || (result.cite || {}).filename || '');
+    if (/2024|superseded/i.test(id + ((result.cite || {}).status || ''))) {
+      verdictClass = 'fail'; verdictText = 'Wrong edition risk';
+    } else {
+      verdictClass = 'risk'; verdictText = 'No status filter';
+    }
+  }
+
+  const warn = result.warning ? `<div class="warn">${esc(result.warning)}</div>` : '';
+  const evidence = result.excerpt
+    ? `<div class="evidence"><div class="elbl">Retrieved text</div>${esc(result.excerpt)}</div>`
+    : '';
+  const c = result.cite;
+  const cite = c
+    ? `<div class="cite"><div class="clbl">Source</div>
+        <div class="crow"><b>Doc</b><span>${esc(c.doc_id || c.filename)}</span></div>
+        <div class="crow"><b>Status</b><span>${esc(c.status || 'unknown')}</span></div>
+        <div class="crow"><b>Date</b><span>${esc(c.effective_date || 'n/a')}</span></div>
+      </div>`
+    : `<div class="cite"><div class="clbl">Source</div>No citation</div>`;
+
+  el.innerHTML = `
+    <div class="albl">Answer</div>
+    <div class="verdict ${verdictClass}">${esc(verdictText)}</div>
+    <div class="abody">${esc(result.reply)}</div>
+    ${warn}
+    ${evidence}
+    ${cite}`;
+
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function setImprove(id, text) {
+  $(id).querySelector('span').textContent = text;
+}
+
+async function refresh() {
+  const snap = await api('/api/state');
+  renderDocs('unmanaged', snap.unmanaged);
+  renderDocs('managed', snap.managed);
+}
+
+$('q').addEventListener('input', () => {
+  $('qVisible').textContent = $('q').value.trim() || GOLDEN;
+});
+
+$('askLlm').onclick = async () => {
+  $('askLlm').disabled = true;
+  try {
+    const out = await api('/api/ask_llm', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query: q() })
+    });
+    renderAnswer('llm', out);
+    setImprove('imp-llm', 'Fluent guess · UNGROUNDED · no citation');
+    $('lesson').hidden = false;
+    $('lesson').innerHTML = '<b>Step 1 done.</b> Sounds helpful, but no Credit Ops retrieve ran.';
+  } finally { $('askLlm').disabled = false; }
+};
+
+$('loadUnmanaged').onclick = async () => {
+  $('loadUnmanaged').disabled = true;
+  try {
+    await api('/api/load_unmanaged', { method: 'POST' });
+    await refresh();
+    $('lesson').hidden = false;
+    $('lesson').innerHTML = '<b>Unmanaged files loaded.</b> 2024 + 2025 are both in the soup. Now click <b>Ask unmanaged</b>.';
+  } finally { $('loadUnmanaged').disabled = false; }
+};
+
+$('askUnmanaged').onclick = async () => {
+  $('askUnmanaged').disabled = true;
+  try {
+    const out = await api('/api/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ app: 'unmanaged', query: q() })
+    });
+    renderAnswer('unmanaged', out);
+    const src = (out.cite && (out.cite.doc_id || out.cite.filename)) || 'nearest text';
+    setImprove('imp-unmanaged', `Retrieved ${src} · no active filter · wrong edition can win`);
+    $('lesson').hidden = false;
+    $('lesson').innerHTML = '<b>Step 2 done.</b> We retrieved something — but without a status filter, 2024 can still win.';
+  } finally { $('askUnmanaged').disabled = false; }
+};
+
+$('loadManaged').onclick = async () => {
+  $('loadManaged').disabled = true;
+  try {
+    await api('/api/load_managed', { method: 'POST' });
+    await refresh();
+    $('lesson').hidden = false;
+    $('lesson').innerHTML = '<b>Managed files loaded.</b> 2024 superseded · 2025 active. Now click <b>Ask managed</b>.';
+  } finally { $('loadManaged').disabled = false; }
+};
+
+$('askManaged').onclick = async () => {
+  $('askManaged').disabled = true;
+  try {
+    const out = await api('/api/ask', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ app: 'managed', query: q() })
+    });
+    renderAnswer('managed', out);
+    setImprove('imp-managed', 'Active-only filter → 2025 digital path + citation');
+    $('lesson').hidden = false;
+    $('lesson').innerHTML = '<b>Step 3 done.</b> Same question. Managed filter + cite. Reliability came from the data system, not a bigger LLM.';
+  } finally { $('askManaged').disabled = false; }
+};
+
+$('resetAll').onclick = async () => {
+  await api('/api/clear', { method: 'POST' });
+  await refresh();
+  ['llm', 'unmanaged', 'managed'].forEach(side => {
+    const el = $('ans-' + side);
+    el.classList.remove('live');
+    el.innerHTML = '<div class="albl">Answer appears here</div><div class="empty">Not asked yet</div>';
+  });
+  setImprove('imp-llm', 'Not asked yet');
+  setImprove('imp-unmanaged', 'Not asked yet');
+  setImprove('imp-managed', 'Not asked yet');
+  $('lesson').hidden = true;
+  $('q').value = GOLDEN;
+  $('qVisible').textContent = GOLDEN;
+};
+
+refresh();
+</script>
+</body>
+</html>

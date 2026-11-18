@@ -1,0 +1,18 @@
+---
+doc_id: credit-ops-circular-2024
+title: Meridian Bank Credit Ops Circular 2024
+effective_date: 2024-03-01
+status: superseded
+region: IN
+product: personal_loan
+---
+
+# Meridian Bank — Credit Operations Circular 2024 (SUPERSEDED)
+
+Personal-loan EMI hardship relief after involuntary job loss requires an in-branch
+request and Branch Manager approval.
+
+Maximum relief period is 30 days.
+There is no self-serve digital path for job-loss EMI relief.
+
+Applies to retail personal loans under Credit Ops Circular 2024-03.
