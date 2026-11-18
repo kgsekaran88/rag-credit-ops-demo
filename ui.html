@@ -37,12 +37,21 @@
     -webkit-font-smoothing: antialiased;
   }
   .page {
-    max-width: 920px;
+    max-width: 1280px;
     margin: 0 auto;
-    padding: 28px 20px 48px;
+    padding: 24px 20px 40px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 16px;
+  }
+  .split {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+    align-items: stretch;
+  }
+  @media (max-width: 980px) {
+    .split { grid-template-columns: 1fr; }
   }
   header {
     background: var(--navy);
@@ -128,15 +137,18 @@
     border: 1px solid var(--line);
     border-radius: var(--radius);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 520px;
   }
   .section.llm { border-top: 5px solid var(--a); }
   .section.unmanaged { border-top: 5px solid var(--m); }
   .section.managed { border-top: 5px solid var(--b); }
   .sec-hd {
-    padding: 16px 18px;
+    padding: 14px 14px 12px;
     display: flex;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
     align-items: flex-start;
     background: var(--elevated);
     border-bottom: 1px solid var(--line);
@@ -152,34 +164,42 @@
   .section.managed .step { color: var(--b); }
   .sec-hd h2 {
     margin: 4px 0 0;
-    font-size: 1.2rem;
+    font-size: 1.05rem;
   }
   .sec-hd .sub {
     margin: 4px 0 0;
-    font-size: 13px;
+    font-size: 12px;
     color: var(--mute);
+    line-height: 1.4;
   }
   .sec-hd .count {
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
     color: var(--mute);
     background: #fff;
     border: 1px solid var(--line);
-    padding: 6px 10px;
+    padding: 5px 8px;
     border-radius: 999px;
     white-space: nowrap;
   }
-  .sec-bd { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 12px; }
+  .sec-bd {
+    padding: 12px 14px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    min-height: 0;
+  }
   .controls {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: 8px;
-    align-items: center;
   }
+  .controls .btn { width: 100%; }
   .hint {
-    font-size: 13px;
+    font-size: 12px;
     color: var(--mute);
-    line-height: 1.45;
+    line-height: 1.4;
   }
   .docs {
     display: flex;
@@ -217,10 +237,12 @@
   .answer {
     border: 2px solid var(--line);
     border-radius: 10px;
-    padding: 14px;
+    padding: 12px;
     background: #fff;
-    min-height: 140px;
+    min-height: 180px;
+    margin-top: auto;
   }
+  .abody { font-size: 14px !important; }
   .section.llm .answer.live { border-color: var(--a); background: var(--a-bg); }
   .section.unmanaged .answer.live { border-color: var(--m); background: var(--m-bg); }
   .section.managed .answer.live { border-color: var(--b); background: var(--b-bg); }
@@ -295,13 +317,25 @@
   }
   .improve ol {
     margin: 0;
-    padding-left: 1.2rem;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
     color: var(--soft);
-    font-size: 14px;
-    line-height: 1.55;
+    font-size: 13px;
+    line-height: 1.45;
   }
-  .improve li { margin-bottom: 6px; }
-  .improve li strong { color: var(--ink); }
+  @media (max-width: 980px) {
+    .improve ol { grid-template-columns: 1fr; }
+  }
+  .improve li {
+    background: var(--elevated);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 10px 12px;
+  }
+  .improve li strong { color: var(--ink); display: block; margin-bottom: 4px; }
   .lesson {
     font-size: 14px;
     line-height: 1.5;
@@ -331,77 +365,79 @@
       </div>
     </div>
 
-    <!-- SECTION 1 -->
-    <section class="section llm" id="sec-llm">
-      <div class="sec-hd">
-        <div>
-          <div class="step">Step 1 · LLM-only</div>
-          <h2>No vault</h2>
-          <p class="sub">Ask with zero documents. Expect fluent but ungrounded.</p>
+    <div class="split">
+      <!-- SECTION 1 -->
+      <section class="section llm" id="sec-llm">
+        <div class="sec-hd">
+          <div>
+            <div class="step">Step 1 · LLM-only</div>
+            <h2>No vault</h2>
+            <p class="sub">Ask with zero documents. Expect fluent but ungrounded.</p>
+          </div>
+          <div class="count">0 docs</div>
         </div>
-        <div class="count">0 docs</div>
-      </div>
-      <div class="sec-bd">
-        <p class="hint">No files to load. This pane never searches Credit Ops circulars.</p>
-        <div class="controls">
-          <button class="btn btn-a" id="askLlm" type="button">Ask LLM-only</button>
+        <div class="sec-bd">
+          <p class="hint">No files to load. Never searches Credit Ops circulars.</p>
+          <div class="controls">
+            <button class="btn btn-a" id="askLlm" type="button">Ask LLM-only</button>
+          </div>
+          <div class="answer" id="ans-llm">
+            <div class="albl">Answer appears here</div>
+            <div class="empty">Not asked yet</div>
+          </div>
         </div>
-        <div class="answer" id="ans-llm">
-          <div class="albl">Answer appears here</div>
-          <div class="empty">Not asked yet</div>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- SECTION 2 -->
-    <section class="section unmanaged" id="sec-unmanaged">
-      <div class="sec-hd">
-        <div>
-          <div class="step">Step 2 · Unmanaged RAG</div>
-          <h2>Soup index</h2>
-          <p class="sub">Load plain circulars, then ask. No status filter.</p>
+      <!-- SECTION 2 -->
+      <section class="section unmanaged" id="sec-unmanaged">
+        <div class="sec-hd">
+          <div>
+            <div class="step">Step 2 · Unmanaged RAG</div>
+            <h2>Soup index</h2>
+            <p class="sub">Load plain circulars, then ask. No status filter.</p>
+          </div>
+          <div class="count" id="count-unmanaged">0 docs</div>
         </div>
-        <div class="count" id="count-unmanaged">0 docs</div>
-      </div>
-      <div class="sec-bd">
-        <p class="hint">Loads <code>credit_ops_v2024.txt</code> + <code>credit_ops_v2025.txt</code> (both eligible — status unknown).</p>
-        <div class="controls">
-          <button class="btn btn-m" id="loadUnmanaged" type="button">Load unmanaged files</button>
-          <button class="btn btn-primary" id="askUnmanaged" type="button">Ask unmanaged</button>
+        <div class="sec-bd">
+          <p class="hint">Loads 2024 + 2025 plain files (both eligible — status unknown).</p>
+          <div class="controls">
+            <button class="btn btn-m" id="loadUnmanaged" type="button">Load unmanaged files</button>
+            <button class="btn btn-primary" id="askUnmanaged" type="button">Ask unmanaged</button>
+          </div>
+          <div class="err" id="err-unmanaged"></div>
+          <div class="docs" id="docs-unmanaged"><div class="empty">No files loaded</div></div>
+          <div class="answer" id="ans-unmanaged">
+            <div class="albl">Answer appears here</div>
+            <div class="empty">Load files, then ask</div>
+          </div>
         </div>
-        <div class="err" id="err-unmanaged"></div>
-        <div class="docs" id="docs-unmanaged"><div class="empty">No files loaded</div></div>
-        <div class="answer" id="ans-unmanaged">
-          <div class="albl">Answer appears here</div>
-          <div class="empty">Load files, then ask</div>
-        </div>
-      </div>
-    </section>
+      </section>
 
-    <!-- SECTION 3 -->
-    <section class="section managed" id="sec-managed">
-      <div class="sec-hd">
-        <div>
-          <div class="step">Step 3 · Managed RAG</div>
-          <h2>Governed vault</h2>
-          <p class="sub">Load metadata files, then ask. Filter status=active · cite.</p>
+      <!-- SECTION 3 -->
+      <section class="section managed" id="sec-managed">
+        <div class="sec-hd">
+          <div>
+            <div class="step">Step 3 · Managed RAG</div>
+            <h2>Governed vault</h2>
+            <p class="sub">Load metadata files, then ask. Filter active · cite.</p>
+          </div>
+          <div class="count" id="count-managed">0 docs</div>
         </div>
-        <div class="count" id="count-managed">0 docs</div>
-      </div>
-      <div class="sec-bd">
-        <p class="hint">Loads managed files: 2024 = <strong>superseded</strong>, 2025 = <strong>active</strong>.</p>
-        <div class="controls">
-          <button class="btn btn-b" id="loadManaged" type="button">Load managed files</button>
-          <button class="btn btn-primary" id="askManaged" type="button">Ask managed</button>
+        <div class="sec-bd">
+          <p class="hint">2024 = <strong>superseded</strong> · 2025 = <strong>active</strong>.</p>
+          <div class="controls">
+            <button class="btn btn-b" id="loadManaged" type="button">Load managed files</button>
+            <button class="btn btn-primary" id="askManaged" type="button">Ask managed</button>
+          </div>
+          <div class="err" id="err-managed"></div>
+          <div class="docs" id="docs-managed"><div class="empty">No files loaded</div></div>
+          <div class="answer" id="ans-managed">
+            <div class="albl">Answer appears here</div>
+            <div class="empty">Load files, then ask</div>
+          </div>
         </div>
-        <div class="err" id="err-managed"></div>
-        <div class="docs" id="docs-managed"><div class="empty">No files loaded</div></div>
-        <div class="answer" id="ans-managed">
-          <div class="albl">Answer appears here</div>
-          <div class="empty">Load files, then ask</div>
-        </div>
-      </div>
-    </section>
+      </section>
+    </div>
 
     <div class="improve">
       <h3>How the answer improves</h3>
